@@ -1,0 +1,9 @@
+bin/
+pyvenv.cfg
+lib/
+lib64
+.vscode/
+.terraform
+*.tfstate
+*.tfstate.backup
+benchmark.log
