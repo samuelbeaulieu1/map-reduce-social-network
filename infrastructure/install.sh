@@ -6,7 +6,8 @@ sudo apt-get install openjdk-8-jdk wget -y
 wget https://dlcdn.apache.org/hadoop/common/stable/hadoop-3.3.4.tar.gz
 wget https://dlcdn.apache.org/spark/spark-3.3.1/spark-3.3.1-bin-hadoop3.tgz
 
-tar -zxvf hadoop-3.3.4.tar.gz -C hadoop
+tar -zxvf hadoop-3.3.4.tar.gz
+mv hadoop-3.3.4 hadoop
 echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64' >> hadoop/etc/hadoop/hadoop-env.sh
 echo 'export HADOOP_CLASSPATH=${JAVA_HOME}/lib/tools.jar' >> hadoop/etc/hadoop/hadoop-env.sh
 cd hadoop
@@ -14,7 +15,8 @@ bin/hadoop com.sun.tools.javac.Main ../map-reduce-social-network/app/WordCount.j
 jar cf wc.jar WordCount*.class
 cd ..
 
-tar -zxvf spark-3.3.1-bin-hadoop3.tgz -C spark
+tar -zxvf spark-3.3.1-bin-hadoop3.tgz
+mv spark-3.3.1-bin-hadoop3 spark
 
 mkdir targets
 cd targets
@@ -31,4 +33,5 @@ wget https://tinyurl.com/kh9excea
 
 cd ..
 
-wget https://www.gutenberg.org/cache/epub/4300/pg4300.txt
+curl https://www.gutenberg.org/cache/epub/4300/pg4300.txt --output pg4300.txt.gz
+gzip -d pg4300.txt.gz
