@@ -97,6 +97,105 @@ public class SocialNetwork {
 
 	}
 
+	public static class Reduce extends Reducer<LongWritable, MutualFriend, LongWritable, Text> {
+
+		/**
+		 * For each user, given all mutual friends (values),
+		 * we create the lists for each friend, sort them and output the result.
+		 */
+		public void reduce(LongWritable key, Iterable<MutualFriend> values, Context context) throws IOException, InterruptedException {
+			Map<Long, List<Long>> mutualFriends = this.createMutualFriendsLists(values);
+			SortedSet<Long> sorted = this.sortMutualFriends(mutualFriends);
+			this.printResult(key, sorted, context);
+		}
+
+		/**
+		 * Comparator by mutual friends list lengths
+		 */
+		public class MutualFriendsListComparator implements Comparator<Long> {
+			private Map<Long, List<Long>> mutualFriends;
+
+			// List of mutual friends to compare sizes
+			public MutualFriendsListComparator(Map<Long, List<Long>> mutualFriends) {
+				this.mutualFriends = mutualFriends;
+			}
+
+			@Override
+			public int compare(Long userId1, Long userId2) {
+				Integer size1 = this.mutualFriends.get(userId1).size();
+				Integer size2 = this.mutualFriends.get(userId2).size();
+				
+				// Comparing by size first, then by id if sizes are equal
+				if (size1 > size2 || (size1.equals(size2) && userId1 < userId2)) {
+					return -1;
+				}
+				return 1;
+			}
+		}
+
+		/**
+		 * Creates lists of mutual friends for each friend of a user.
+		 */
+		private Map<Long, List<Long>> createMutualFriendsLists(Iterable<MutualFriend> values) {
+			Map<Long, List<Long>> mutualFriends = new HashMap<Long, List<Long>>();
+			Set<Long> alreadyFriends = new HashSet<>();
+
+			for (MutualFriend value : values) {
+				// Check if user is already a friend, in which case we want to make
+				// sure he is removed from the list and prevent adding it after
+				if (value.mutualFriend == -1L) {
+					alreadyFriends.add(value.user);
+					mutualFriends.remove(value.user);
+					continue;
+				}
+				// If user has already been identified as already friend, skip
+				if (alreadyFriends.contains(value.user)) {
+					continue;
+				}
+
+				// Now, we know this user has mutual friend and we should add
+				// to correct list, create if it doesn't exist already
+				if (!mutualFriends.containsKey(value.user)) {
+					mutualFriends.put(value.user, new ArrayList<Long>());
+				}
+				mutualFriends.get(value.user).add(value.mutualFriend);
+			}
+
+			return mutualFriends;
+		}
+
+		/**
+		 * Sorts the lists of mutual friends based on the length and only returns
+		 * the user ids after sorting it, discarding the lists created.
+		 */
+		private SortedSet<Long> sortMutualFriends(Map<Long, List<Long>> mutualFriends) {
+			SortedSet<Long> sorted = new TreeSet<Long>(new MutualFriendsListComparator(mutualFriends));
+
+			// We get only the keys, since we won't need the lists after sorting it by length
+			sorted.addAll(mutualFriends.keySet());
+
+			return sorted;
+		}
+
+		/**
+		 * Output of friends recommandations for a user
+		 */
+		private void printResult(LongWritable userId, SortedSet<Long> sortedRecommandations, Context context) throws IOException, InterruptedException {
+			String friendsRecommandations = "";
+			Iterator<Long> it = sortedRecommandations.iterator();
+			// Setting recommandations to format user1,user2,user3,...,usern
+			while (it.hasNext()) {
+				friendsRecommandations += it.next();
+				if (it.hasNext()) {
+					friendsRecommandations += ",";
+				}
+			}
+			// Output is Text, key is userId, which outputs userId tab recommandations
+			context.write(userId, new Text(friendsRecommandations));
+		}
+
+	}
+
 	public static void main(String[] args) throws Exception {
 		Configuration conf = new Configuration();
 		Job job = Job.getInstance(conf, "social network");
