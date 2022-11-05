@@ -87,7 +87,7 @@ public class SocialNetwork {
 
 			// Adding the mutual friends relationship to the context and already friends relationship
 			for (int i = 0; i < friends.size(); i++) {
-				for (int j = i; j < friends.size(); j++) {
+				for (int j = i + 1; j < friends.size(); j++) {
 					context.write(new LongWritable(friends.get(i)), new MutualFriend(userId, friends.get(j)));
 					context.write(new LongWritable(friends.get(j)), new MutualFriend(userId, friends.get(i)));
 				}
