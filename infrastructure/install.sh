@@ -18,7 +18,8 @@ echo 'export HADOOP_CLASSPATH=${JAVA_HOME}/lib/tools.jar' >> hadoop/etc/hadoop/h
 
 # Compile WordCount
 cd hadoop
-bin/hadoop com.sun.tools.javac.Main ../map-reduce-social-network/app/WordCount.java 
+cp ../map-reduce-social-network/app/WordCount.java .
+bin/hadoop com.sun.tools.javac.Main WordCount.java
 jar cf wc.jar WordCount*.class
 
 cd ..
