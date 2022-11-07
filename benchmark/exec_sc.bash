@@ -6,7 +6,7 @@ while getopts ib flag;
 do
     case "${flag}" in
         b) BUILD=true;;
-        i) INPUT=${OPTARG};;
+        i) INPUT="soc-LiveJournal1Adj.txt";;
     esac
 done
 
